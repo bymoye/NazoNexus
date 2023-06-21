@@ -1,4 +1,5 @@
 blacksheep
 uvicorn
 piccolo[postgres]
+argon2-cffi
 fast_ulid

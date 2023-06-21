@@ -5,7 +5,7 @@ import typing as t
 from piccolo.table import Table
 from piccolo.columns import Varchar, Serial, Secret, Email, Boolean, Timestamp
 from piccolo.utils.sync import run_sync
-from pyargon2 import hash
+from argon2 import PasswordHasher
 
 logger = logging.getLogger(__name__)
 
@@ -23,24 +23,19 @@ class User(Table, tablename="auth_user"):
 
     _min_password_length = 6
     _max_password_length = 128
+    ph = PasswordHasher()
 
     def __setattr__(self, name: str, value: t.Any):
         """
         Make sure that if the password is set, it's stored in a hashed form.
         """
-        if name == "password" and not value.startswith("argon2"):
+        if name == "password" and not value.startswith("$argon2id"):
             value = self.__class__.hash_password(value)
 
         super().__setattr__(name, value)
 
     @classmethod
-    def get_salt(cls):
-        return secrets.token_hex(16)
-
-    @classmethod
-    def hash_password(
-        cls, password: str, salt: t.Optional[str] = None, iterations: int = 600
-    ) -> str:
+    def hash_password(cls, password: str) -> str:
         """
         Hashes the password, ready for storage, and for comparing during
         login.
@@ -52,11 +47,8 @@ class User(Table, tablename="auth_user"):
         if len(password) > cls._max_password_length:
             logger.warning("Excessively long password provided.")
             raise ValueError("The password is too long.")
-
-        if not salt:
-            salt = cls.get_salt()
-        hashed = hash(password, salt=salt, time_cost=iterations)
-        return f"argon2${iterations}${salt}${hashed}"
+        hash = cls.ph.hash(password)
+        return hash
 
     @classmethod
     def _validate_password(cls, password: str):
@@ -79,16 +71,9 @@ class User(Table, tablename="auth_user"):
         if len(password) > cls._max_password_length:
             raise ValueError("The password is too long.")
 
-        if password.startswith("pbkdf2_sha256"):
+        if password.startswith("$argon2id"):
             logger.warning("Tried to create a user with an already hashed password.")
             raise ValueError("Do not pass a hashed password.")
-
-    @classmethod
-    def split_stored_password(cls, password: str) -> t.List[str]:
-        elements = password.split("$")
-        if len(elements) != 4:
-            raise ValueError("Unable to split hashed password")
-        return elements
 
     @classmethod
     async def login(cls, username: str, password: str) -> t.Optional[int]:
@@ -119,15 +104,22 @@ class User(Table, tablename="auth_user"):
             return None
 
         stored_password = response["password"]
-
-        algorithm, iterations, salt, hashed = cls.split_stored_password(stored_password)
-
-        if cls.hash_password(password, salt, int(iterations)) == stored_password:
-            await cls.update({cls.last_login: datetime.datetime.now()}).where(
-                cls.username == username
-            )
-            return response["id"]
-        else:
+        try:
+            print(f"开始验证密码,时间:: {datetime.datetime.now()}")
+            if cls.ph.verify(stored_password, password):
+                update_data: t.Dict = {cls.last_login: datetime.datetime.now()}
+                if cls.ph.check_needs_rehash(stored_password):
+                    update_data = {
+                        **update_data,
+                        cls.password: cls.hash_password(password),
+                    }
+                print(f"验证密码结束,时间:: {datetime.datetime.now()}")
+                await cls.update(update_data).where(cls.username == username)
+                return response["id"]
+            else:
+                return None
+        except Exception as e:
+            logger.warning(f"Error verifying password: {e}")
             return None
 
     @classmethod
