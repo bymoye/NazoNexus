@@ -1,4 +1,3 @@
-import secrets
 import logging
 import datetime
 import typing as t
@@ -6,6 +5,7 @@ from piccolo.table import Table
 from piccolo.columns import Varchar, Serial, Secret, Email, Boolean, Timestamp
 from piccolo.utils.sync import run_sync
 from argon2 import PasswordHasher
+from argon2.exceptions import InvalidHash
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class User(Table, tablename="auth_user"):
 
     def __setattr__(self, name: str, value: t.Any):
         """
-        Make sure that if the password is set, it's stored in a hashed form.
+        确保密码被hash
         """
         if name == "password" and not value.startswith("$argon2id"):
             value = self.__class__.hash_password(value)
@@ -35,62 +35,40 @@ class User(Table, tablename="auth_user"):
         super().__setattr__(name, value)
 
     @classmethod
-    def hash_password(cls, password: str) -> str:
+    def _validate_password(cls, password: str) -> bool:
         """
-        Hashes the password, ready for storage, and for comparing during
-        login.
-
-        :raises ValueError:
-            If an excessively long password is provided.
-
+        验证密码是否符合要求
         """
+        if len(password) < cls._min_password_length:
+            raise ValueError("密码长度不能小于6位")
+
         if len(password) > cls._max_password_length:
-            logger.warning("Excessively long password provided.")
-            raise ValueError("The password is too long.")
-        hash = cls.ph.hash(password)
-        return hash
+            raise ValueError("密码长度不能大于128位")
+
+        return True
+
+    ###########################################################################
 
     @classmethod
-    def _validate_password(cls, password: str):
+    def hash_password(cls, password: str) -> str:
+        """hash密码
+        Args:
+            password (str): 密码, 需要大于6位, 小于128位
+
+        Returns:
+            str: hash后的密码
         """
-        Validate the raw password. Used by :meth:`update_password` and
-        :meth:`create_user`.
-
-        :param password:
-            The raw password e.g. ``'hello123'``.
-        :raises ValueError:
-            If the password fails any of the criteria.
-
-        """
-        if not password:
-            raise ValueError("A password must be provided.")
-
-        if len(password) < cls._min_password_length:
-            raise ValueError("The password is too short.")
-
-        if len(password) > cls._max_password_length:
-            raise ValueError("The password is too long.")
-
-        if password.startswith("$argon2id"):
-            logger.warning("Tried to create a user with an already hashed password.")
-            raise ValueError("Do not pass a hashed password.")
+        if not cls._validate_password(password):
+            raise ValueError("Invalid password.")
+        return cls.ph.hash(password)
 
     @classmethod
     async def login(cls, username: str, password: str) -> t.Optional[int]:
         """
-        Make sure the user exists and the password is valid. If so, the
-        ``last_login`` value is updated in the database.
-
-        :returns:
-            The id of the user if a match is found, otherwise ``None``.
-
+        如果用户存在且密码正确, 则更新数据库中的 ``last_login`` 字段
+        否则返回 ``None``
         """
-        if len(username) > cls.username.length:
-            logger.warning("Excessively long username provided.")
-            return None
-
-        if len(password) > cls._max_password_length:
-            logger.warning("Excessively long password provided.")
+        if not cls._validate_password(password):
             return None
 
         response = (
@@ -105,7 +83,6 @@ class User(Table, tablename="auth_user"):
 
         stored_password = response["password"]
         try:
-            print(f"开始验证密码,时间:: {datetime.datetime.now()}")
             if cls.ph.verify(stored_password, password):
                 update_data: t.Dict = {cls.last_login: datetime.datetime.now()}
                 if cls.ph.check_needs_rehash(stored_password):
@@ -113,14 +90,38 @@ class User(Table, tablename="auth_user"):
                         **update_data,
                         cls.password: cls.hash_password(password),
                     }
-                print(f"验证密码结束,时间:: {datetime.datetime.now()}")
                 await cls.update(update_data).where(cls.username == username)
                 return response["id"]
             else:
                 return None
-        except Exception as e:
-            logger.warning(f"Error verifying password: {e}")
+        except InvalidHash as e:
+            logger.warning(f"错误的用户密码存储, 无法验证: {e}")
             return None
+        except Exception as e:
+            logger.warning(f"发生了未知错误: {e}")
+            return None
+
+    ###########################################################################
+
+    @classmethod
+    def update_password_sync(cls, user: t.Union[str, int], password: str) -> None:
+        return run_sync(cls.update_password(user, password))
+
+    @classmethod
+    async def update_password(cls, user: t.Union[str, int], password: str) -> None:
+        cls._validate_password(password)
+        if isinstance(user, str):
+            clause = cls.username == user
+        elif isinstance(user, int):
+            clause = cls.id == user
+        else:
+            raise ValueError("`user` 参数必须是 `id` 或 `username`")
+
+        password = cls.hash_password(password)
+
+        await cls.update({cls.password: password}).where(clause).run()
+
+    ###########################################################################
 
     @classmethod
     def create_user_sync(
@@ -140,11 +141,12 @@ class User(Table, tablename="auth_user"):
         cls, username: str, password: str, email: str, nickname: t.Union[str, None]
     ) -> "User":
         if not username:
-            raise ValueError("A username must be provided.")
+            raise ValueError("用户名不能为空")
         if not nickname:
             nickname = username
 
         cls._validate_password(password=password)
+
         user = cls(
             username=username,
             password=password,

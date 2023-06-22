@@ -1,12 +1,13 @@
-import typing as t
+from dotenv import load_dotenv
 
 from piccolo.engine import engine_finder
-
 from blacksheep.server import Application
 from blacksheep.server.openapi.v3 import OpenAPIHandler
 from openapidocs.v3 import Info
 from piccolo.engine.base import Engine
 
+
+load_dotenv()
 
 app = Application()
 

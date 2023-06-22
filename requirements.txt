@@ -3,3 +3,4 @@ uvicorn
 piccolo[postgres]
 argon2-cffi
 fast_ulid
+python-dotenv
