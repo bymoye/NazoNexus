@@ -1,7 +1,7 @@
 import os
 from piccolo_conf import *  # noqa
 
-DB = PostgresEngine(
+DB = PostgresEngine(  # noqa
     config={
         "database": os.environ.get("PG_DATABASE", "test"),
         "user": os.environ.get("PG_USER", "postgres"),

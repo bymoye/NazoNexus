@@ -6,7 +6,7 @@ from blacksheep import Application
 from blacksheep.server.openapi.v3 import OpenAPIHandler
 from openapidocs.v3 import Info
 
-from utils.reference import handler_error
+from utils.errors import configure_error_handlers
 
 
 load_dotenv()
@@ -17,7 +17,7 @@ app = Application(show_error_details=bool(os.environ.get("SHOW_ERROR_DETAILS", N
 docs = OpenAPIHandler(info=Info(title="New API", version="0.0.1"))
 docs.bind_app(app)
 
-app.handle_internal_server_error = handler_error
+configure_error_handlers(app)
 
 
 async def open_database_connection_pool(application):

@@ -1,4 +1,4 @@
-blacksheep
+blacksheep >= 2.0a8
 uvicorn
 piccolo[postgres]
 argon2-cffi

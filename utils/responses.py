@@ -1,17 +1,8 @@
 import orjson
 import typing as t
-from blacksheep import Content, Request, Response, json
+from blacksheep import Content, Response
 
 JSON_CONTENT_TYPE = b"application/json"
-
-
-async def handler_error(request: Request, exc: Exception) -> Response:
-    return Response(
-        status=500,
-        content=Content(
-            JSON_CONTENT_TYPE, orjson.dumps({"status": 500, "error": f"{exc}"})
-        ),
-    )
 
 
 def json_res(data: t.Any, status: int = 200) -> Response:
