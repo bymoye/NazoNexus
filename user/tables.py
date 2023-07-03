@@ -29,7 +29,14 @@ class User(Table, tablename="auth_user"):
         """
         确保密码被hash
         """
-        if name == "password" and not value.startswith("$argon2id"):
+        if name == "password" and (
+            value[:9]
+            not in {
+                "$argon2id",
+                "$argon2i$",
+                "$argon2d$",
+            }
+        ):
             value = self.__class__.hash_password(value)
 
         super().__setattr__(name, value)
