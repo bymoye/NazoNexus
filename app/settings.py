@@ -1,39 +1,46 @@
-"""
-Application settings handled using Pydantic Settings management.
-
-Pydantic is used both to read app settings from various sources, and to validate their
-values.
-
-https://docs.pydantic.dev/latest/usage/settings/
-"""
-from pydantic import BaseModel, BaseSettings
+import os
+from msgspec import Struct, field
+from msgspec import toml
 
 
-class APIInfo(BaseModel):
-    title = "sakura_re_server"
-    version = "0.0.1"
+class APIInfo(Struct):
+    title: str
+    version: str
 
 
-class App(BaseModel):
-    show_error_details = False
+class App(Struct):
+    show_error_details: bool
 
 
-class Site(BaseModel):
-    copyright: str = "Example"
+class Site(Struct):
+    copyright: str
 
 
-class Settings(BaseSettings):
-    # to override info:
-    # export app_info='{"title": "x", "version": "0.0.2"}'
-    info: APIInfo = APIInfo()
+class Database(Struct):
+    database: str
+    user: str
+    password: str
+    host: str
+    port: int
 
-    # to override app:
-    # export app_app='{"show_error_details": True}'
-    app: App = App()
 
-    class Config:
-        env_prefix = "APP_"  # defaults to no prefix, i.e. ""
+class Settings(Struct):
+    info: APIInfo
+    app: App
+    site: Site
+    database: Database
+
+
+_setting = None
 
 
 def load_settings() -> Settings:
-    return Settings()
+    global _setting
+    if _setting:
+        return _setting
+    if os.path.exists("config.toml"):
+        with open("config.toml") as f:
+            _setting = toml.decode(f.read(), type=Settings)
+    else:
+        raise FileNotFoundError("config.toml 未找到, 请正确配置")
+    return _setting

@@ -3,14 +3,16 @@ from piccolo.engine.postgres import PostgresEngine
 
 from piccolo.conf.apps import AppRegistry
 
+from app.settings import load_settings
 
+settings = load_settings().database
 DB = PostgresEngine(
     config={
-        "database": os.environ.get("PG_DATABASE", "test"),
-        "user": os.environ.get("PG_USER", "postgres"),
-        "password": os.environ.get("PG_PASSWORD", "postgres"),
-        "host": os.environ.get("PG_HOST", "localhost"),
-        "port": int(os.environ.get("PG_PORT", "5432")),
+        "database": settings.database,
+        "user": settings.user,
+        "password": settings.password,
+        "host": settings.host,
+        "port": settings.port,
     }
 )
 

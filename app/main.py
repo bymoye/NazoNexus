@@ -20,8 +20,8 @@ def configure_application(
         services=services, show_error_details=settings.app.show_error_details
     )
 
-    configure_error_handlers(app)
-    configure_authentication(app, settings)
+    configure_error_handlers(app=app)
+    configure_authentication(app=app, settings=settings)
     configure_db(app=app)
     return app
 

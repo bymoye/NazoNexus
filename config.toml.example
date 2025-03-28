@@ -1,0 +1,17 @@
+[info]
+title = "sakura_re_server"
+version = "0.0.1"
+
+[app]
+show_error_details = false
+
+[site]
+copyright = "N/A"
+
+[database]
+database = "sakura_re"
+user = "postgres"
+password = "postgres"
+host = "localhost"
+port = 5432
+
