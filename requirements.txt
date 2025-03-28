@@ -1,7 +1,9 @@
-blacksheep >= 2.0a8
+blacksheep >= 2.1.0
 uvicorn
+uvloop; sys_platform != 'win32'
+pyjwt
 piccolo[postgres]
 argon2-cffi
-fast_ulid
+uuid_utils
 python-dotenv
-orjson
+msgspec
