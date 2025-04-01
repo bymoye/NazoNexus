@@ -2,16 +2,18 @@ import logging
 import datetime
 import typing as t
 from piccolo.table import Table
-from piccolo.columns import Varchar, Serial, Secret, Email, Boolean, Timestamp
+from piccolo.columns import Varchar, Secret, Email, Boolean, Timestamptz, UUID
 from piccolo.utils.sync import run_sync
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHash
+
+from utils.column_types import UUID as UUIDv7
 
 logger = logging.getLogger(__name__)
 
 
 class User(Table, tablename="auth_user"):
-    id: Serial
+    id = UUIDv7(primary_key=True, required=True)
     username = Varchar(length=36, unique=True)
     password = Secret(length=255)
     nickname = Varchar(null=True)
@@ -19,7 +21,7 @@ class User(Table, tablename="auth_user"):
     active = Boolean(default=False)
     admin = Boolean(default=False)
     superuser = Boolean(default=False)
-    last_login = Timestamp(null=True, default=None, required=False)
+    last_login = Timestamptz(null=True, default=None, required=False)
 
     _min_password_length = 6
     _max_password_length = 128
@@ -47,10 +49,10 @@ class User(Table, tablename="auth_user"):
         验证密码是否符合要求
         """
         if len(password) < cls._min_password_length:
-            raise ValueError("密码长度不能小于6位")
+            raise ValueError("Password length must be at least 6 characters")
 
         if len(password) > cls._max_password_length:
-            raise ValueError("密码长度不能大于128位")
+            raise ValueError("Password length must be at most 128 characters")
 
         return True
 
@@ -122,7 +124,7 @@ class User(Table, tablename="auth_user"):
         elif isinstance(user, int):
             clause = cls.id == user
         else:
-            raise ValueError("`user` 参数必须是 `id` 或 `username`")
+            raise ValueError("`user` parameter must be `id` or `username`")
 
         password = cls.hash_password(password)
 
@@ -148,7 +150,7 @@ class User(Table, tablename="auth_user"):
         cls, username: str, password: str, email: str, nickname: t.Union[str, None]
     ) -> "User":
         if not username:
-            raise ValueError("用户名不能为空")
+            raise ValueError("username cannot be empty")
         if not nickname:
             nickname = username
 

@@ -1,12 +1,11 @@
 from piccolo.table import Table
 from piccolo.columns import Varchar, Text, Timestamp, ForeignKey
-from fast_ulid import ulid
-
+from utils.column_types import UUID as UUIDv7
 from user.tables import User
 
 
 class Posts(Table):
-    id = Varchar(length=26, primary_key=True, index=True, unique=True)
+    id = UUIDv7(primary_key=True, required=True)
     title = Varchar(length=100)
     content = Text()
     author = ForeignKey(references=User)
@@ -29,7 +28,6 @@ class Posts(Table):
             Posts: Posts实例
         """
         return await cls.objects().create(
-            id=ulid(),
             title=title,
             content=content,
             author=author,
