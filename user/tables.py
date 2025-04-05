@@ -2,11 +2,11 @@ import logging
 import datetime
 import typing as t
 from piccolo.table import Table
-from piccolo.columns import Varchar, Secret, Email, Boolean, Timestamptz, UUID
+from piccolo.columns import Varchar, Secret, Email, Boolean, Timestamptz
 from piccolo.utils.sync import run_sync
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHash
-
+from uuid_utils import UUID
 from utils.column_types import UUID as UUIDv7
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ class User(Table, tablename="auth_user"):
 
     _min_password_length = 6
     _max_password_length = 128
-    ph = PasswordHasher()
+    _ph = PasswordHasher()
 
     def __setattr__(self, name: str, value: t.Any):
         """
@@ -69,10 +69,10 @@ class User(Table, tablename="auth_user"):
         """
         if not cls._validate_password(password):
             raise ValueError("Invalid password.")
-        return cls.ph.hash(password)
+        return cls._ph.hash(password)
 
     @classmethod
-    async def login(cls, username: str, password: str) -> t.Optional[int]:
+    async def login(cls, username: str, password: str) -> t.Optional[UUID]:
         """
         如果用户存在且密码正确, 则更新数据库中的 ``last_login`` 字段
         否则返回 ``None``
@@ -80,27 +80,24 @@ class User(Table, tablename="auth_user"):
         if not cls._validate_password(password):
             return None
 
-        response = (
-            await cls.select(cls._meta.primary_key, cls.password)
-            .where(cls.username == username)
-            .first()
-            .run()
-        )
+        response = await cls.objects().where(cls.username == username).first()
         if not response:
             # No match found
             return None
 
-        stored_password = response["password"]
+        stored_password = response.password
         try:
-            if cls.ph.verify(stored_password, password):
-                update_data: t.Dict = {cls.last_login: datetime.datetime.now()}
-                if cls.ph.check_needs_rehash(stored_password):
+            if cls._ph.verify(stored_password, password):
+                update_data: t.Dict = {
+                    cls.last_login: datetime.datetime.now(tz=datetime.timezone.utc)
+                }
+                if cls._ph.check_needs_rehash(stored_password):
                     update_data = {
                         **update_data,
                         cls.password: cls.hash_password(password),
                     }
                 await cls.update(update_data).where(cls.username == username)
-                return response["id"]
+                return response.id
             else:
                 return None
         except InvalidHash as e:
@@ -113,18 +110,35 @@ class User(Table, tablename="auth_user"):
     ###########################################################################
 
     @classmethod
-    def update_password_sync(cls, user: t.Union[str, int], password: str) -> None:
-        return run_sync(cls.update_password(user, password))
+    def update_password_sync(
+        cls,
+        password: str,
+        user_id: t.Optional[UUID] = None,
+        username: t.Optional[str] = None,
+    ) -> None:
+        return run_sync(
+            cls.update_password(user_id=user_id, username=username, password=password)
+        )
 
     @classmethod
-    async def update_password(cls, user: t.Union[str, int], password: str) -> None:
+    async def update_password(
+        cls,
+        password: str,
+        user_id: t.Optional[UUID] = None,
+        username: t.Optional[str] = None,
+    ) -> None:
         cls._validate_password(password)
-        if isinstance(user, str):
-            clause = cls.username == user
-        elif isinstance(user, int):
-            clause = cls.id == user
+        if not user_id and not username:
+            raise ValueError("`user_id` or `username` must be provided")
+        if user_id and username:
+            raise ValueError(
+                "`user_id` and `username` cannot be provided at the same time"
+            )
+
+        if user_id:
+            clause = cls.id == user_id
         else:
-            raise ValueError("`user` parameter must be `id` or `username`")
+            clause = cls.username == username
 
         password = cls.hash_password(password)
 
@@ -134,7 +148,7 @@ class User(Table, tablename="auth_user"):
 
     @classmethod
     def create_user_sync(
-        cls, username: str, password: str, email: str, nickname: t.Union[str, None]
+        cls, username: str, password: str, email: str, nickname: t.Optional[str] = None
     ) -> "User":
         return run_sync(
             cls.create_user(
@@ -147,13 +161,14 @@ class User(Table, tablename="auth_user"):
 
     @classmethod
     async def create_user(
-        cls, username: str, password: str, email: str, nickname: t.Union[str, None]
+        cls, username: str, password: str, email: str, nickname: t.Optional[str] = None
     ) -> "User":
         if not username:
             raise ValueError("username cannot be empty")
+        if not email:
+            raise ValueError("email cannot be empty")
         if not nickname:
             nickname = username
-
         cls._validate_password(password=password)
 
         user = cls(

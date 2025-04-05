@@ -1,5 +1,6 @@
+from datetime import datetime
 from piccolo.table import Table
-from piccolo.columns import Varchar, Text, Timestamp, ForeignKey
+from piccolo.columns import Varchar, Text, Timestamptz, ForeignKey
 from utils.column_types import UUID as UUIDv7
 from user.tables import User
 
@@ -9,8 +10,8 @@ class Posts(Table):
     title = Varchar(length=100)
     content = Text()
     author = ForeignKey(references=User)
-    created_at = Timestamp()
-    updated_at = Timestamp(required=False, null=True)
+    created_at = Timestamptz()
+    updated_at = Timestamptz(required=False, null=True, auto_update=datetime.now)
 
     def __str__(self):
         return self.title
