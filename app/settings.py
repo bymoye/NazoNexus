@@ -10,6 +10,7 @@ class APIInfo(Struct):
 
 class App(Struct):
     show_error_details: bool
+    enable_docs: bool
 
 
 class Site(Struct):
