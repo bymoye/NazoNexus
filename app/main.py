@@ -20,9 +20,8 @@ def configure_application(
     app = Application(
         services=services, show_error_details=settings.app.show_error_details
     )
-
-    configure_error_handlers(app=app)
     configure_authentication(app=app, settings=settings)
+    configure_error_handlers(app=app)
     configure_db(app=app)
     configure_docs(app=app, settings=settings)
     configure_router(app=app)

@@ -6,6 +6,10 @@ version = "0.0.1"
 show_error_details = false
 enable_docs = false
 
+[jwt]
+expire_time = 24
+
+
 [site]
 copyright = "N/A"
 

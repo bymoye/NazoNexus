@@ -1,3 +1,4 @@
+from datetime import timedelta
 import os
 from msgspec import Struct, field
 from msgspec import toml
@@ -11,6 +12,14 @@ class APIInfo(Struct):
 class App(Struct):
     show_error_details: bool
     enable_docs: bool
+
+
+class JWT(Struct):
+    expire_time: int
+
+    @property
+    def expire_timedelta(self) -> timedelta:
+        return timedelta(hours=self.expire_time)
 
 
 class Site(Struct):
@@ -28,6 +37,7 @@ class Database(Struct):
 class Settings(Struct):
     info: APIInfo
     app: App
+    jwt: JWT
     site: Site
     database: Database
 

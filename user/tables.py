@@ -1,4 +1,3 @@
-import logging
 import datetime
 import typing as t
 from piccolo.table import Table
@@ -7,9 +6,10 @@ from piccolo.utils.sync import run_sync
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHash
 from uuid_utils import UUID
+from utils.logging import get_logger
 from utils.column_types import UUID as UUIDv7
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class User(Table, tablename="auth_user"):
