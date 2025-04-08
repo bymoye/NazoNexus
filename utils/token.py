@@ -2,11 +2,32 @@ import os
 import jwt
 import typing as t
 from datetime import datetime, timezone
-from app.settings import Settings
+from app.settings import Settings, load_settings
 from pathlib import Path
 
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from cryptography.hazmat.primitives import serialization
+from msgspec import Struct, field, to_builtins, convert
+from uuid_utils import UUID, uuid7
+
+SETTINGS: Settings = load_settings()
+
+
+class TokenPayload(Struct):
+    """
+    Token payload structure.
+    """
+
+    sub: str  # Subject (用户ID)
+    iss: str = SETTINGS.info.title  # Issuer (颁发者)
+    exp: datetime = field(
+        default_factory=lambda: datetime.now(tz=timezone.utc)
+        + SETTINGS.jwt.expire_timedelta
+    )  # Expiration time (过期时间)
+    iat: datetime = field(
+        default_factory=lambda: datetime.now(tz=timezone.utc)
+    )  # Issued at time (签发时间)
+    jti: UUID = field(default_factory=uuid7)  # JWT ID (唯一标识符)
 
 
 class JWTService:
@@ -17,8 +38,7 @@ class JWTService:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self, settings: Settings):
-        self.settings = settings
+    def __init__(self):
         project_root = Path(__file__).parent.parent
         self.secret_dir = os.path.join(project_root, "secret")
         if not os.path.exists(self.secret_dir):
@@ -45,21 +65,15 @@ class JWTService:
             )
 
     # 生成JWT
-    def generate_jwt(self, payload: dict) -> str:
+    def generate_jwt(self, payload: TokenPayload) -> str:
         """
         生成JWT
-        :param payload: JWT的有效负载, 需要包含 "sub" 字段
+        :param payload: JWT的有效负载
         :return: 生成的JWT字符串
         """
 
         token = jwt.encode(
-            {
-                **payload,
-                "iss": self.settings.info.title,
-                "iat": datetime.now(tz=timezone.utc),
-                "exp": datetime.now(tz=timezone.utc)
-                + self.settings.jwt.expire_timedelta,
-            },
+            payload=to_builtins(payload),
             key=self.private_key,
             algorithm="EdDSA",
             headers={"alg": "EdDSA", "typ": "JWT"},
@@ -67,24 +81,24 @@ class JWTService:
         return token
 
     # 验证JWT
-    def verify_jwt(self, token: str) -> dict:
+    def verify_jwt(self, token: str) -> TokenPayload:
         """
         验证JWT
         :param token: JWT字符串
         :return: 解码后的JWT有效负载
         """
         try:
-            payload = jwt.decode(
+            payload: dict = jwt.decode(
                 token,
                 key=self.public_key,
                 algorithms=["EdDSA"],
-                issuer=self.settings.info.title,
+                issuer=SETTINGS.info.title,
                 options={
                     "verify_signature": True,
                     "require": ["exp", "iss", "sub", "iss"],
                 },
             )
-            return payload
+            return convert(payload, type=TokenPayload)
         except jwt.ExpiredSignatureError:
             raise ValueError("Token has expired.")
         except jwt.InvalidIssuerError:

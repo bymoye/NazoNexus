@@ -7,5 +7,6 @@ argon2-cffi
 uuid_utils
 python-dotenv
 msgspec
+tomllib
 cachetools
 pyjwt[crypto]

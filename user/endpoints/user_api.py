@@ -9,3 +9,5 @@ class UsersAPI(APIController):
     @get("/test")
     async def test_endpoint(self):
         return {"message": "Test endpoint is working!"}
+
+    
