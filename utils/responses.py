@@ -1,11 +1,15 @@
 import typing as t
-from msgspec import json
+from enum import IntEnum
+from msgspec import json, Struct
 from blacksheep import Content, Response
+
+ENCODER = json.Encoder()
+
 
 JSON_CONTENT_TYPE = b"application/json"
 
 
-def json_res(data: t.Any, status: int = 200) -> Response:
+def jsonify(data: "ApiResponse", status: int = 200) -> Response:
     """
     Returns a response with application/json content,
     and given status (default HTTP 200 OK).
@@ -13,12 +17,12 @@ def json_res(data: t.Any, status: int = 200) -> Response:
     return Response(
         status=status,
         headers=None,
-        content=Content(content_type=JSON_CONTENT_TYPE, data=json.encode(data)),
+        content=Content(content_type=JSON_CONTENT_TYPE, data=ENCODER.encode(data)),
     )
 
 
-def pretty_json_res(
-    data: t.Any,
+def pretty_jsonify(
+    data: "ApiResponse",
     status: int = 200,
 ) -> Response:
     """
@@ -30,6 +34,25 @@ def pretty_json_res(
         headers=None,
         content=Content(
             content_type=JSON_CONTENT_TYPE,
-            data=(json.format(json.encode(data))),
+            data=(json.format(ENCODER.encode(data))),
         ),
     )
+
+
+class StatusCode(IntEnum):
+    # 通用状态码 (0 - 1999)
+    SUCCESS = 0  # 成功
+    INVALID_PARAMS = 1001  # 无效参数
+    SERVER_ERROR = 1002  # 服务器错误
+    PAGE_NOT_FOUND = 1003  # 页面未找到
+    DATA_NOT_FOUND = 1004  # 数据未找到
+    DATA_CONFLICT = 1005  # 数据冲突
+    AUTH_FAILED = 1006  # 身份验证失败
+    PERMISSION_DENIED = 1007  # 权限不足
+    SERVER_EXCEPTION = 1008  # 服务器异常
+
+
+class ApiResponse(Struct):
+    code: int = StatusCode.SUCCESS
+    data: t.Optional[t.Union[str, list, dict]] = None
+    message: str = ""

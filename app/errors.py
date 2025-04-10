@@ -1,6 +1,5 @@
-from msgspec import json, Struct
 import typing as t
-from blacksheep import Application, Content, Request, Response
+from blacksheep import Application, Request, Response
 from essentials.exceptions import (
     AcceptedException,
     ForbiddenException,
@@ -11,91 +10,85 @@ from essentials.exceptions import (
     ConflictException,
 )
 
-from utils.responses import JSON_CONTENT_TYPE
+from utils.responses import jsonify, StatusCode, ApiResponse
 
 
 def configure_error_handlers(app: Application) -> None:
-    class Res(Struct):
-        status: int
-        message: str
 
     async def not_found_handler(
         app: Application, request: Request, exception: Exception
     ) -> Response:
-        return Response(
-            status=404,
-            content=Content(
-                content_type=JSON_CONTENT_TYPE,
-                data=json.encode(
-                    Res(status=404, message=str(exception) or "Not found")
-                ),
+        return jsonify(
+            data=ApiResponse(
+                code=StatusCode.PAGE_NOT_FOUND,
+                data=None,
+                message=str(exception) or "Not found",
             ),
+            status=404,
         )
 
     async def empty_argument_exception(
         app: Application, request: Request, exception: Exception
     ) -> Response:
-        return Response(
-            status=400,
-            content=Content(
-                content_type=JSON_CONTENT_TYPE,
-                data=json.encode(
-                    Res(status=400, message=str(exception) or "Empty Argument")
-                ),
+        return jsonify(
+            data=ApiResponse(
+                code=StatusCode.INVALID_PARAMS,
+                data=None,
+                message=str(exception) or "Empty Argument",
             ),
+            status=400,
         )
 
     async def conflict_exception(
         app: Application, request: Request, exception: Exception
     ) -> Response:
-        return Response(
-            status=409,
-            content=Content(
-                content_type=JSON_CONTENT_TYPE,
-                data=json.encode(Res(status=409, message=str(exception) or "Conflict")),
+        return jsonify(
+            data=ApiResponse(
+                code=StatusCode.DATA_CONFLICT,
+                data=None,
+                message=str(exception) or "Conflict",
             ),
+            status=409,
         )
 
     async def not_implemented(*args: t.Any) -> Response:
-        return Response(
-            status=500,
-            content=Content(
-                content_type=JSON_CONTENT_TYPE,
-                data=json.encode(Res(status=500, message="Not implemented")),
+        return jsonify(
+            data=ApiResponse(
+                code=StatusCode.SERVER_EXCEPTION,
+                data=None,
+                message="Not implemented",
             ),
+            status=500,
         )
 
     async def unauthorized(*args: t.Any) -> Response:
-        return Response(
-            status=401,
-            content=Content(
-                content_type=JSON_CONTENT_TYPE,
-                data=json.encode(Res(status=401, message="Unauthorized")),
+        return jsonify(
+            data=ApiResponse(
+                code=StatusCode.AUTH_FAILED,
+                data=None,
+                message="Unauthorized",
             ),
+            status=401,
         )
 
     async def forbidden(*args: t.Any) -> Response:
-        return Response(
-            status=403,
-            content=Content(
-                content_type=JSON_CONTENT_TYPE,
-                data=json.encode(Res(status=403, message="Forbidden")),
+        return jsonify(
+            data=ApiResponse(
+                code=StatusCode.PERMISSION_DENIED,
+                data=None,
+                message="Forbidden",
             ),
+            status=403,
         )
 
     async def accepted(*args: t.Any) -> Response:
-        return Response(
-            status=202,
-            content=Content(
-                content_type=JSON_CONTENT_TYPE,
-                data=json.encode(
-                    Res(
-                        status=202,
-                        message="The operation is accepted, "
-                        "but its completion is not guaranteed.",
-                    )
-                ),
+        return jsonify(
+            data=ApiResponse(
+                code=StatusCode.SUCCESS,
+                data=None,
+                message="Accepted",
             ),
+            status=202,
         )
 
     app.exceptions_handlers.update(

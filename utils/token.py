@@ -18,7 +18,7 @@ class TokenPayload(Struct):
     Token payload structure.
     """
 
-    sub: str  # Subject (用户ID)
+    sub: UUID  # Subject (用户ID)
     iss: str = SETTINGS.info.title  # Issuer (颁发者)
     exp: datetime = field(
         default_factory=lambda: datetime.now(tz=timezone.utc)
