@@ -10,13 +10,13 @@
 </head>
 
 <body>
-    <script id="api-reference" data-url="##SPEC_URL##"></script>
-
-    <script>
-        var configuration = { theme: 'default' }
-        document.getElementById('api-reference').dataset.configuration = JSON.stringify(configuration)
-    </script>
+    <div id="app"></div>
     <script src="##JS_URL##"></script>
+    <script>
+        Scalar.createApiReference('#app', {
+            url: '##SPEC_URL##',
+        })
+    </script>
 </body>
 
 </html>
