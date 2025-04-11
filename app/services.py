@@ -20,6 +20,6 @@ def configure_services(settings: Settings) -> Tuple[Container, Settings]:
     container = Container()
 
     container.add_instance(instance=settings)
-    container.add_instance(instance=JWTService(settings=settings))
+    container.add_instance(instance=JWTService())
 
     return container, settings
