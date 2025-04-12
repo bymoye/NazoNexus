@@ -4,18 +4,15 @@ from msgspec import Struct, field
 from msgspec import toml
 
 
-class APIInfo(Struct):
-    title: str
-    version: str
-
-
 class App(Struct):
     show_error_details: bool
     enable_docs: bool
+    allow_origin: list[str]
 
 
 class JWT(Struct):
     expire_time: int
+    issuer: str
 
     @property
     def expire_timedelta(self) -> timedelta:
@@ -24,6 +21,8 @@ class JWT(Struct):
 
 class Site(Struct):
     copyright: str
+    title: str
+    description: str
 
 
 class Database(Struct):
@@ -35,7 +34,6 @@ class Database(Struct):
 
 
 class Settings(Struct):
-    info: APIInfo
     app: App
     jwt: JWT
     site: Site

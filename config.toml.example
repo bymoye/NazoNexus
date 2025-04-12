@@ -1,21 +1,20 @@
-[info]
-title = "NazoNexus"
-version = "0.0.1"
-
 [app]
 show_error_details = false
-enable_docs = false
+enable_docs = true
+allow_origin = ["*"]
 
 [jwt]
 expire_time = 24
-
+issuer = "nazonexus"
 
 [site]
 copyright = "N/A"
+title = "NazoNexus"
+description = "A Simple blog engine"
 
 [database]
 database = "nazo_nexus"
 user = "postgres"
-password = "postgres"
+password = "postgresql"
 host = "localhost"
 port = 5432

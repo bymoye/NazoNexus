@@ -19,7 +19,7 @@ class TokenPayload(Struct):
     """
 
     sub: UUID  # Subject (用户ID)
-    iss: str = SETTINGS.info.title  # Issuer (颁发者)
+    iss: str = SETTINGS.jwt.issuer  # Issuer (颁发者)
     exp: datetime = field(
         default_factory=lambda: datetime.now(tz=timezone.utc)
         + SETTINGS.jwt.expire_timedelta
@@ -92,7 +92,7 @@ class JWTService:
                 token,
                 key=self.public_key,
                 algorithms=["EdDSA"],
-                issuer=SETTINGS.info.title,
+                issuer=SETTINGS.jwt.issuer,
                 options={
                     "verify_signature": True,
                     "require": ["exp", "iss", "sub", "iss"],

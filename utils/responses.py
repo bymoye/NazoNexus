@@ -4,7 +4,7 @@ from msgspec import json, Struct
 from blacksheep import Content, Response
 
 ENCODER = json.Encoder()
-
+DECODER = json.Decoder()
 
 JSON_CONTENT_TYPE = b"application/json"
 
