@@ -1,4 +1,4 @@
-from blacksheep.server.controllers import APIController, get
+from blacksheep.server.controllers import APIController, get, post
 
 
 class UsersAPI(APIController):
@@ -9,5 +9,3 @@ class UsersAPI(APIController):
     @get("/test")
     async def test_endpoint(self):
         return {"message": "Test endpoint is working!"}
-
-    

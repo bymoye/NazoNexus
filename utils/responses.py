@@ -50,6 +50,7 @@ class StatusCode(IntEnum):
     AUTH_FAILED = 1006  # 身份验证失败
     PERMISSION_DENIED = 1007  # 权限不足
     SERVER_EXCEPTION = 1008  # 服务器异常
+    RANGE_NOT_SATISFIABLE = 1009  # 范围不满足
 
 
 class ApiResponse(Struct):

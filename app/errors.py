@@ -1,16 +1,15 @@
 import typing as t
 from blacksheep import Application, Request, Response
-from essentials.exceptions import (
-    AcceptedException,
-    ForbiddenException,
-    NotImplementedException,
-    ObjectNotFound,
-    UnauthorizedException,
-    EmptyArgumentException,
-    ConflictException,
-)
-
 from utils.responses import jsonify, StatusCode, ApiResponse
+from blacksheep.exceptions import (
+    BadRequest,
+    Unauthorized,
+    Forbidden,
+    RangeNotSatisfiable,
+    NotFound,
+    InternalServerError,
+    NotImplementedByServer,
+)
 
 
 def configure_error_handlers(app: Application) -> None:
@@ -22,33 +21,21 @@ def configure_error_handlers(app: Application) -> None:
             data=ApiResponse(
                 code=StatusCode.PAGE_NOT_FOUND,
                 data=None,
-                message=str(exception) or "Not found",
+                message=str(exception) if exception else "Not found",
             ),
             status=404,
         )
 
-    async def empty_argument_exception(
+    async def bad_request_exception(
         app: Application, request: Request, exception: Exception
     ) -> Response:
         return jsonify(
             data=ApiResponse(
                 code=StatusCode.INVALID_PARAMS,
                 data=None,
-                message=str(exception) or "Empty Argument",
+                message=str(exception) if exception else "Empty Argument",
             ),
             status=400,
-        )
-
-    async def conflict_exception(
-        app: Application, request: Request, exception: Exception
-    ) -> Response:
-        return jsonify(
-            data=ApiResponse(
-                code=StatusCode.DATA_CONFLICT,
-                data=None,
-                message=str(exception) or "Conflict",
-            ),
-            status=409,
         )
 
     async def not_implemented(*args: t.Any) -> Response:
@@ -58,7 +45,7 @@ def configure_error_handlers(app: Application) -> None:
                 data=None,
                 message="Not implemented",
             ),
-            status=500,
+            status=501,
         )
 
     async def unauthorized(*args: t.Any) -> Response:
@@ -81,24 +68,41 @@ def configure_error_handlers(app: Application) -> None:
             status=403,
         )
 
-    async def accepted(*args: t.Any) -> Response:
+    async def range_not_satisfiable(
+        app: Application, request: Request, exception: Exception
+    ) -> Response:
         return jsonify(
             data=ApiResponse(
-                code=StatusCode.SUCCESS,
+                code=StatusCode.RANGE_NOT_SATISFIABLE,
                 data=None,
-                message="Accepted",
+                message=str(exception) if exception else "Range Not Satisfiable",
             ),
-            status=202,
+            status=416,
+        )
+
+    async def internal_server_error(
+        app: Application, request: Request, exception: Exception
+    ) -> Response:
+        return jsonify(
+            data=ApiResponse(
+                code=StatusCode.SERVER_ERROR,
+                data=None,
+                message=str(exception) if exception else "Internal Server Error",
+            ),
+            status=500,
         )
 
     app.exceptions_handlers.update(
         {
-            ObjectNotFound: not_found_handler,
-            NotImplementedException: not_implemented,
-            UnauthorizedException: unauthorized,
-            ForbiddenException: forbidden,
-            AcceptedException: accepted,
-            EmptyArgumentException: empty_argument_exception,
-            ConflictException: conflict_exception,
+            NotFound: not_found_handler,
+            Unauthorized: unauthorized,
+            Forbidden: forbidden,
+            BadRequest: bad_request_exception,
+            RangeNotSatisfiable: range_not_satisfiable,
+            InternalServerError: internal_server_error,
+            NotImplementedByServer: not_implemented,
+            404: not_found_handler,
+            400: bad_request_exception,
+            500: internal_server_error,
         }
     )
