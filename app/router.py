@@ -7,3 +7,4 @@ def configure_router(app: Application) -> None:
     """
     from blog import endpoints
     from user import endpoints
+    from common import endpoints
