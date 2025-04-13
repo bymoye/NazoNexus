@@ -4,7 +4,7 @@ from schemas.account_schemas import RegisterInput
 from user.tables import User
 from blacksheep.exceptions import Forbidden
 
-from utils.bindings import FromSchemas
+from utils.bindings import FromSchema
 
 
 class BoostrapAPI(APIController):
@@ -27,7 +27,7 @@ class BoostrapAPI(APIController):
 
     # 超级管理员账号密码
     @post("/register")
-    async def register(self, user_input: FromSchemas[RegisterInput]):
+    async def register(self, user_input: FromSchema[RegisterInput]):
         """
         注册超级管理员账号
         """

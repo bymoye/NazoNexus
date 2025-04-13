@@ -7,14 +7,14 @@ from blacksheep.messages import Request
 from blacksheep.server.bindings import Binder, BoundValue
 from blacksheep.exceptions import BadRequest
 
-SchemasType = TypeVar("SchemasType", bound=Struct)
+SchemaType = TypeVar("SchemaType", bound=Struct)
 
 
-class FromSchemas(BoundValue[SchemasType]): ...
+class FromSchema(BoundValue[SchemaType]): ...
 
 
-class SchemasBinder(Binder):
-    handle = FromSchemas
+class SchemaBinder(Binder):
+    handle = FromSchema
 
     async def get_value(self, request: Request) -> Any:
         try:
