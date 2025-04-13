@@ -10,7 +10,7 @@ class BoostrapAPI(APIController):
         return "bootstrap"
 
     async def on_request(self, request: Request):
-        if not await User.exists():
+        if await User.exists():
             raise Forbidden("Bootstrap API can only be accessed when no users exist.")
 
     @get("/test")
