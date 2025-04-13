@@ -1,6 +1,6 @@
 import typing as t
 from enum import IntEnum
-from msgspec import json, Struct
+from msgspec import json, Struct, UNSET, UnsetType
 from blacksheep import Content, Response
 
 ENCODER = json.Encoder()
@@ -56,5 +56,5 @@ class StatusCode(IntEnum):
 
 class ApiResponse(Struct):
     code: int = StatusCode.SUCCESS
-    data: t.Optional[t.Union[str, list, dict]] = None
-    message: str = ""
+    data: t.Union[str, list, dict, UnsetType] = UNSET
+    message: t.Union[str, UnsetType] = UNSET

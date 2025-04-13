@@ -20,7 +20,6 @@ def configure_error_handlers(app: Application) -> None:
         return jsonify(
             data=ApiResponse(
                 code=StatusCode.PAGE_NOT_FOUND,
-                data=None,
                 message=str(exception) if exception else "Not found",
             ),
             status=404,
@@ -32,7 +31,6 @@ def configure_error_handlers(app: Application) -> None:
         return jsonify(
             data=ApiResponse(
                 code=StatusCode.INVALID_PARAMS,
-                data=None,
                 message=str(exception) if exception else "Empty Argument",
             ),
             status=400,
@@ -44,7 +42,6 @@ def configure_error_handlers(app: Application) -> None:
         return jsonify(
             data=ApiResponse(
                 code=StatusCode.SERVER_EXCEPTION,
-                data=None,
                 message=str(exception) if exception else "Not implemented",
             ),
             status=501,
@@ -56,7 +53,6 @@ def configure_error_handlers(app: Application) -> None:
         return jsonify(
             data=ApiResponse(
                 code=StatusCode.AUTH_FAILED,
-                data=None,
                 message=str(exception) if exception else "Unauthorized",
             ),
             status=401,
@@ -68,7 +64,6 @@ def configure_error_handlers(app: Application) -> None:
         return jsonify(
             data=ApiResponse(
                 code=StatusCode.FORBIDDEN,
-                data=None,
                 message=str(exception) if exception else "Forbidden",
             ),
             status=403,
@@ -80,7 +75,6 @@ def configure_error_handlers(app: Application) -> None:
         return jsonify(
             data=ApiResponse(
                 code=StatusCode.RANGE_NOT_SATISFIABLE,
-                data=None,
                 message=str(exception) if exception else "Range Not Satisfiable",
             ),
             status=416,
@@ -92,7 +86,6 @@ def configure_error_handlers(app: Application) -> None:
         return jsonify(
             data=ApiResponse(
                 code=StatusCode.SERVER_ERROR,
-                data=None,
                 message=str(exception) if exception else "Internal Server Error",
             ),
             status=500,
