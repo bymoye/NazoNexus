@@ -28,7 +28,7 @@ def configure_db(app: Application):
                 raise Exception("No engine found")
             await engine.close_connection_pool()
         except Exception:
-            print("Unable to connect to the database")
+            logger.error("Unable to close the database connection pool")
 
     app.on_start += open_database_connection_pool
     app.on_stop += close_database_connection_pool

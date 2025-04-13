@@ -47,16 +47,13 @@ async def check_uuidv7(engine: Engine):
         logger.error(f"Error checking uuidv7: {e}")
 
 
-# 执行一次迁移
 async def run_migration():
     """
     Check if the migration is valid and the pg_uuidv7 extension is installed.
     """
-    # 执行 bash “piccolo migrations forwards all”
     subprocess.run(
         ["piccolo", "migrations", "forwards", "all"], stdout=subprocess.DEVNULL
     )
-    # 迁移程序执行完成.
     logger.info("Migration is completed, please check the migration status.")
     subprocess.run(
         ["piccolo", "migrations", "check"],

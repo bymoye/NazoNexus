@@ -38,32 +38,38 @@ def configure_error_handlers(app: Application) -> None:
             status=400,
         )
 
-    async def not_implemented(*args: t.Any) -> Response:
+    async def not_implemented(
+        app: Application, request: Request, exception: Exception
+    ) -> Response:
         return jsonify(
             data=ApiResponse(
                 code=StatusCode.SERVER_EXCEPTION,
                 data=None,
-                message="Not implemented",
+                message=str(exception) if exception else "Not implemented",
             ),
             status=501,
         )
 
-    async def unauthorized(*args: t.Any) -> Response:
+    async def unauthorized(
+        app: Application, request: Request, exception: Exception
+    ) -> Response:
         return jsonify(
             data=ApiResponse(
                 code=StatusCode.AUTH_FAILED,
                 data=None,
-                message="Unauthorized",
+                message=str(exception) if exception else "Unauthorized",
             ),
             status=401,
         )
 
-    async def forbidden(*args: t.Any) -> Response:
+    async def forbidden(
+        app: Application, request: Request, exception: Exception
+    ) -> Response:
         return jsonify(
             data=ApiResponse(
-                code=StatusCode.PERMISSION_DENIED,
+                code=StatusCode.FORBIDDEN,
                 data=None,
-                message="Forbidden",
+                message=str(exception) if exception else "Forbidden",
             ),
             status=403,
         )

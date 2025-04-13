@@ -10,8 +10,7 @@ class BoostrapAPI(APIController):
         return "bootstrap"
 
     async def on_request(self, request: Request):
-        # 在本路由中, 所有的请求都是基于 用户表 中不存在任何一条数据的情况下, 才能执行
-        if await User.exists():
+        if not await User.exists():
             raise Forbidden("Bootstrap API can only be accessed when no users exist.")
 
     @get("/test")
