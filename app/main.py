@@ -9,6 +9,7 @@ from app.cors import configure_cors
 from app.docs import configure_docs
 from app.errors import configure_error_handlers
 from app.json import configure_json
+from app.log_format import configure_log_format
 from app.router import configure_router
 from app.services import configure_services
 from app.db import configure_db
@@ -22,6 +23,7 @@ def configure_application(
     app = Application(
         services=services, show_error_details=settings.app.show_error_details
     )
+    configure_log_format()
     configure_authentication(app=app, settings=settings)
     configure_json(app=app)
     configure_cors(app=app, settings=settings)

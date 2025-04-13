@@ -10,5 +10,4 @@ def get_logger(name: t.Optional[str] = None) -> logging.Logger:
         Logger: The logger instance.
     """
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
     return logger
