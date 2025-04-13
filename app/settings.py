@@ -1,7 +1,9 @@
 from datetime import timedelta
-import os
-from msgspec import Struct, field
+from pathlib import Path
+from msgspec import Struct
 from msgspec import toml
+
+BASE_DIR = Path(__file__).parent.parent
 
 
 class App(Struct):
@@ -47,9 +49,10 @@ def load_settings() -> Settings:
     global _setting
     if _setting:
         return _setting
-    if os.path.exists("config.toml"):
-        with open("config.toml") as f:
-            _setting = toml.decode(f.read(), type=Settings)
+
+    config_path = BASE_DIR.joinpath("config.toml")
+    if config_path.exists():
+        _setting = toml.decode(config_path.read_bytes(), type=Settings)
     else:
         raise FileNotFoundError("config.toml 未找到, 请正确配置")
     return _setting

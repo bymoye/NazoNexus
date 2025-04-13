@@ -6,7 +6,7 @@ piccolo[postgres]
 argon2-cffi
 uuid_utils
 python-dotenv
-msgspec
-tomllib
+msgspec[toml]
 cachetools
 pyjwt[crypto]
+colorlog

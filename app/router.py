@@ -1,7 +1,6 @@
 from blacksheep import Application
-from pathlib import Path
 from blacksheep.utils.meta import import_child_modules
-
+from app.settings import BASE_DIR
 from utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -12,7 +11,6 @@ def configure_router(app: Application) -> None:
     Configure the router for the application.
     """
 
-    BASE_DIR = Path(__file__).parent.parent
     folders = [
         folder
         for folder in BASE_DIR.iterdir()
@@ -24,7 +22,6 @@ def configure_router(app: Application) -> None:
     for folder in folders:
         folder_name = folder.name
         endpoints_module = folder / "endpoints"
-        # 导入模块
         if endpoints_module.exists():
             import_child_modules(endpoints_module)
             logger.info(f"Imported {folder_name}.endpoints")
