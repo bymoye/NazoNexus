@@ -10,6 +10,8 @@ from blacksheep.exceptions import (
     InternalServerError,
     NotImplementedByServer,
 )
+from blacksheep.server.authentication import AuthenticateChallenge
+from guardpost.authorization import ForbiddenError, UnauthorizedError
 
 
 def configure_error_handlers(app: Application) -> None:
@@ -50,11 +52,13 @@ def configure_error_handlers(app: Application) -> None:
     async def unauthorized(
         app: Application, request: Request, exception: Exception
     ) -> Response:
+        # 本服务不支持 WWW-Authenticate 认证, 所以不需要返回 WWW-Authenticate 头
         return jsonify(
             data=ApiResponse(
                 code=StatusCode.AUTH_FAILED,
                 message=str(exception) if exception else "Unauthorized",
             ),
+            headers=None,
             status=401,
         )
 
@@ -95,7 +99,10 @@ def configure_error_handlers(app: Application) -> None:
         {
             NotFound: not_found_handler,
             Unauthorized: unauthorized,
+            UnauthorizedError: unauthorized,
             Forbidden: forbidden,
+            ForbiddenError: forbidden,
+            AuthenticateChallenge: unauthorized,
             BadRequest: bad_request_exception,
             RangeNotSatisfiable: range_not_satisfiable,
             InternalServerError: internal_server_error,

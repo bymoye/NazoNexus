@@ -8,15 +8,21 @@ DECODER = json.Decoder()
 
 JSON_CONTENT_TYPE = b"application/json"
 
+HeaderType = tuple[bytes, bytes]
 
-def jsonify(data: "ApiResponse", status: int = 200) -> Response:
+
+def jsonify(
+    data: "ApiResponse",
+    status: int = 200,
+    headers: t.Optional[t.List[HeaderType]] = None,
+) -> Response:
     """
     Returns a response with application/json content,
     and given status (default HTTP 200 OK).
     """
     return Response(
         status=status,
-        headers=None,
+        headers=headers,
         content=Content(content_type=JSON_CONTENT_TYPE, data=ENCODER.encode(data)),
     )
 
@@ -24,6 +30,7 @@ def jsonify(data: "ApiResponse", status: int = 200) -> Response:
 def pretty_jsonify(
     data: "ApiResponse",
     status: int = 200,
+    headers: t.Optional[t.List[HeaderType]] = None,
 ) -> Response:
     """
     Returns a response with indented application/json content,
@@ -31,7 +38,7 @@ def pretty_jsonify(
     """
     return Response(
         status=status,
-        headers=None,
+        headers=headers,
         content=Content(
             content_type=JSON_CONTENT_TYPE,
             data=(json.format(ENCODER.encode(data))),
