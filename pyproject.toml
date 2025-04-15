@@ -1,2 +1,12 @@
 [project]
 name = "nazo_nexus"
+version = "0.0.1"
+description = "NazoNexus project"
+
+[tool.mypy]
+ignore_missing_imports = true
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = ["openapidocs.v3"]
+ignore_missing_imports = true

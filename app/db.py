@@ -6,8 +6,8 @@ from utils.logging import get_logger
 logger = get_logger(__name__)
 
 
-def configure_db(app: Application):
-    async def open_database_connection_pool(application: Application):
+def configure_db(app: Application) -> None:
+    async def open_database_connection_pool(application: Application) -> None:
         try:
             engine = engine_finder()
             if engine is None:
@@ -21,7 +21,7 @@ def configure_db(app: Application):
         except Exception:
             logger.error("Unable to connect to the database")
 
-    async def close_database_connection_pool(application: Application):
+    async def close_database_connection_pool(application: Application) -> None:
         try:
             engine = engine_finder()
             if engine is None:

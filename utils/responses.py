@@ -52,9 +52,12 @@ class StatusCode(IntEnum):
     SERVER_EXCEPTION = 1008  # 服务器异常
     RANGE_NOT_SATISFIABLE = 1009  # 范围不满足
     FORBIDDEN = 1010  # 禁止访问
+    # 用户相关状态码 (2000 - 2999)
+    USER_NOT_FOUND = 2001  # 用户未找到
+    USER_OR_PASSWORD_ERROR = 2002  # 用户或密码错误
 
 
 class ApiResponse(Struct):
     code: int = StatusCode.SUCCESS
-    data: t.Union[str, list, dict, UnsetType] = UNSET
+    data: t.Union[str, list[t.Any], dict[t.Any, t.Any], UnsetType] = UNSET
     message: t.Union[str, UnsetType] = UNSET

@@ -13,7 +13,7 @@ class Posts(Table):
     created_at = Timestamptz()
     updated_at = Timestamptz(required=False, null=True, auto_update=datetime.now)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title
 
     @classmethod

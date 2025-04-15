@@ -1,4 +1,5 @@
 import subprocess
+import typing as t
 from piccolo.engine import Engine
 from utils.logging import get_logger
 from app.settings import BASE_DIR
@@ -6,7 +7,7 @@ from app.settings import BASE_DIR
 logger = get_logger(__name__)
 
 
-async def check_uuidv7(engine: Engine):
+async def check_uuidv7(engine: Engine[t.Any]) -> None:
     """
     Check if the uuidv7 function is valid and the pg_uuidv7 extension is installed.
     """
@@ -47,7 +48,7 @@ async def check_uuidv7(engine: Engine):
         logger.error(f"Error checking uuidv7: {e}")
 
 
-async def run_migration():
+async def run_migration() -> None:
     """
     Check if the migration is valid and the pg_uuidv7 extension is installed.
     """
@@ -61,6 +62,6 @@ async def run_migration():
     )
 
 
-async def check_database(engine: Engine):
+async def check_database(engine: Engine[t.Any]) -> None:
     await check_uuidv7(engine)
     await run_migration()

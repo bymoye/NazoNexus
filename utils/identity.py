@@ -2,7 +2,8 @@ import typing as t
 from guardpost import Identity
 
 from user.tables import User
-from uuid_utils import UUID
+
+from uuid import UUID
 
 
 class UserIdentity(Identity):

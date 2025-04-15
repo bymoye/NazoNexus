@@ -7,6 +7,6 @@ argon2-cffi
 uuid_utils
 python-dotenv
 msgspec[toml]
-cachetools
+cacheout
 pyjwt[crypto]
 colorlog

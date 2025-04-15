@@ -1,47 +1,42 @@
 from __future__ import annotations
 import typing as t
+import uuid_utils.compat as uuid
 from enum import Enum
-import uuid_utils as uuid
-from uuid import UUID as DefaultUUID
-from typing import overload
-from piccolo.table import Table
 from piccolo.columns.defaults import Default
-from piccolo.columns.base import Column
+from piccolo.columns import UUID as PiccoloUUID
 
 
 class UUID7(Default):
     @property
-    def postgres(self):
+    def postgres(self) -> str:
         return "uuid_generate_v7()"
 
     @property
-    def cockroach(self):
+    def cockroach(self) -> str:
         return self.postgres
 
     @property
-    def sqlite(self):
+    def sqlite(self) -> str:
         return "''"
 
-    def python(self):
+    def python(self) -> uuid.UUID:
         return uuid.uuid7()
 
 
 UUIDv7Arg = t.Union[
     UUID7,
     uuid.UUID,
-    DefaultUUID,
     str,
     Enum,
     None,
     t.Callable[[], uuid.UUID],
-    t.Callable[[], DefaultUUID],
 ]
 
 
-class UUID(Column):
-    value_type = DefaultUUID
+class UUID(PiccoloUUID):
+    value_type = uuid.UUID
 
-    def __init__(self, default: UUIDv7Arg = UUID7(), **kwargs) -> None:
+    def __init__(self, default: UUIDv7Arg = UUID7(), **kwargs: t.Any) -> None:
         if default is UUID7:
             default = UUID7()
 
@@ -63,25 +58,5 @@ class UUID(Column):
         super().__init__(**kwargs)
 
     @property
-    def column_type(self):
-        return "UUID"
-
-    @overload
-    def __get__(self, obj: Table, objtype=None) -> uuid.UUID: ...
-
-    @overload
-    def __get__(self, obj: None, objtype=None) -> UUID: ...
-
-    def __get__(self, obj, objtype=None):
-        return obj.__dict__[self._meta.name] if obj else self
-
-    def __set__(self, obj, value: t.Union[uuid.UUID, DefaultUUID, None]):
-        obj.__dict__[self._meta.name] = value
-
-    @property
-    def python_type(self):
-        return uuid.UUID
-
-    @property
-    def column_Type(self) -> str:
+    def column_type(self) -> str:
         return "UUID"

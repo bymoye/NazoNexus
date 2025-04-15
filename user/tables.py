@@ -1,11 +1,12 @@
 import datetime
 import typing as t
 from piccolo.table import Table
-from piccolo.columns import Varchar, Secret, Email, Boolean, Timestamptz
-from piccolo.utils.sync import run_sync
+from piccolo.columns.base import Column
+from piccolo.columns import Varchar, Email, Boolean, Timestamptz
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHash
-from uuid_utils import UUID
+
+from uuid import UUID
 from utils.logging import get_logger
 from utils.column_types import UUID as UUIDv7
 
@@ -15,7 +16,7 @@ logger = get_logger(__name__)
 class User(Table, tablename="auth_user"):
     id = UUIDv7(primary_key=True, required=True)
     username = Varchar(length=36, unique=True)
-    password = Secret(length=255)
+    password = Varchar(length=255, secret=True)
     nickname = Varchar(null=True)
     email = Email(length=255, unique=True)
     active = Boolean(default=False)
@@ -27,7 +28,7 @@ class User(Table, tablename="auth_user"):
     _max_password_length = 128
     _ph = PasswordHasher()
 
-    def __setattr__(self, name: str, value: t.Any):
+    def __setattr__(self, name: str, value: t.Any) -> None:
         """
         确保密码被hash
         """
@@ -88,7 +89,7 @@ class User(Table, tablename="auth_user"):
         stored_password = response.password
         try:
             if cls._ph.verify(stored_password, password):
-                update_data: t.Dict = {
+                update_data: t.Dict[Column | str, t.Any] = {
                     cls.last_login: datetime.datetime.now(tz=datetime.timezone.utc)
                 }
                 if cls._ph.check_needs_rehash(stored_password):
@@ -108,17 +109,6 @@ class User(Table, tablename="auth_user"):
             return None
 
     ###########################################################################
-
-    @classmethod
-    def update_password_sync(
-        cls,
-        password: str,
-        user_id: t.Optional[UUID] = None,
-        username: t.Optional[str] = None,
-    ) -> None:
-        return run_sync(
-            cls.update_password(user_id=user_id, username=username, password=password)
-        )
 
     @classmethod
     async def update_password(
@@ -145,19 +135,6 @@ class User(Table, tablename="auth_user"):
         await cls.update({cls.password: password}).where(clause).run()
 
     ###########################################################################
-
-    @classmethod
-    def create_user_sync(
-        cls, username: str, password: str, email: str, nickname: t.Optional[str] = None
-    ) -> "User":
-        return run_sync(
-            cls.create_user(
-                username=username,
-                password=password,
-                email=email,
-                nickname=nickname,
-            )
-        )
 
     @classmethod
     async def create_user(

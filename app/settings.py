@@ -17,8 +17,8 @@ class JWT(Struct):
     issuer: str
 
     @property
-    def expire_timedelta(self) -> timedelta:
-        return timedelta(hours=self.expire_time)
+    def expire_timedelta(self) -> int:
+        return int(timedelta(hours=self.expire_time).total_seconds())
 
 
 class Site(Struct):

@@ -1,5 +1,4 @@
-import os
-from piccolo_conf import PostgresEngine
+from piccolo.engine.postgres import PostgresEngine
 
 from app.settings import load_settings
 

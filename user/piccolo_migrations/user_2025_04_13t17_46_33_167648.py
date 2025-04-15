@@ -14,7 +14,7 @@ VERSION = "1.24.2"
 DESCRIPTION = ""
 
 
-async def forwards():
+async def forwards() -> MigrationManager:
     manager = MigrationManager(
         migration_id=ID, app_name="user", description=DESCRIPTION
     )

@@ -31,14 +31,12 @@ VERSION = "1.24.2"
 DESCRIPTION = ""
 
 
-async def forwards():
+async def forwards() -> MigrationManager:
     manager = MigrationManager(
         migration_id=ID, app_name="blog", description=DESCRIPTION
     )
 
-    manager.add_table(
-        class_name="Posts", tablename="posts", schema=None, columns=None
-    )
+    manager.add_table(class_name="Posts", tablename="posts", schema=None, columns=None)
 
     manager.add_column(
         table_class_name="Posts",

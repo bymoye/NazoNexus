@@ -1,4 +1,3 @@
-import os
 from piccolo.engine.postgres import PostgresEngine
 
 from piccolo.conf.apps import AppRegistry
